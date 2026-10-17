@@ -2,6 +2,17 @@
 
 Python project for studying a grid rectifier, shared LFP battery/DC bus, and grid-forming inverter supplying an AI data center.
 
+## Run online — no installation required
+
+**[Launch the interactive online model →](https://doubleconversionbessforaidatacenter-4ayyslw7fjymiy5g6l92vx.streamlit.app/)**
+
+1. Open the app and choose a starting configuration in the sidebar.
+2. Use the included AI load profile or upload your own CSV. Adjust the engineering parameters as needed.
+3. Press **Run simulation**, then open **Simulation results** to explore power flows, battery SoC, and grid-side voltage and frequency.
+4. Run another scenario to compare smoothing settings, or download reports and data from **Source & downloads**.
+
+The app includes model equations and a source-code viewer. The default scenario uses a 10-second grid-power filter, load-side VSM Tj = 10 s and D = 1, and scaled battery energy. This is a provisional engineering model; utility parameters and several component characteristics are assumed. See [the electrical model guide](docs/electrical-model.md) for scope and limitations.
+
 ## Status
 
 A provisional reduced-order simulation reconstructed from the screenshots is available, with explicit assumptions for missing definitions. It uses the supplied load CSV. See [model notes](docs/model-notes.md) before interpreting results; this is not an exact recovery of the original source.
@@ -31,7 +42,7 @@ bess-ai validate-profile data/raw/AILoadProfile.csv --base-power-mw 5.16
 ```text
 src/double_conversion_bess/  Importable package and command line
 tests/                       Input validation checks
-data/raw/                    Original input files (Git ignored)
+data/raw/                    Included AI load CSV; other raw inputs ignored
 outputs/                     Generated results (Git ignored)
 docs/                        Model provenance and limitations
 environment.yml              Conda environment
@@ -51,7 +62,7 @@ python -m pip install "streamlit>=1.57"
 python -m streamlit run app.py
 ```
 
-Open the local address printed by Streamlit (normally http://localhost:8501). Stop the app with Ctrl+C in its terminal. For an explicitly local-only listener, launch with `python -m streamlit run app.py --server.address localhost`. It has not been deployed or published.
+Open the local address printed by Streamlit (normally http://localhost:8501). Stop the app with Ctrl+C in its terminal. For an explicitly local-only listener, launch with `python -m streamlit run app.py --server.address localhost`. Alternatively, use the hosted model linked above.
 
 The workbench provides:
 
@@ -92,9 +103,9 @@ bess-ai simulate data/raw/AILoadProfile.csv --base-power-mw 5.16 --config config
 
 Modules separate configuration, battery OCV, converter/EMS equations and solver, and HTML reporting. No notebook or Matplotlib is required.
 
-## GitHub preparation
+## Source repository
 
-No remote repository has been created or published. The project owner authorized including AILoadProfile.csv in the public demonstration. Dependencies are specified but not locked. No open-source license has yet been selected.
+The source is published on [GitHub](https://github.com/saberisajadgit/DoubleConversionBESSforAIDataCenter). The project owner authorized including AILoadProfile.csv in the public demonstration. Dependencies are specified but not locked. No open-source license has yet been selected.
 
 ## Online deployment
 
@@ -108,4 +119,4 @@ Publish this project folder as the repository root (so app.py, src/, cloud/, doc
 
 The cloud entry point uses cloud/requirements.txt, which takes priority over the root Conda file because it sits beside the entry point. It loads the same app and models as the local version. The source checkout provides the Python package through src/. No API key or other secret is required. The server address is left to the hosting platform.
 
-Online deployment has not been tested. Shared hosting compute limits can affect solver runtime; start with the bundled 213-second profile. Session history is temporary, and public users can view the included source and load profile.
+The online application has been deployed and its interface opened by the project owner. Shared hosting compute limits can affect solver runtime; start with the bundled 213-second profile. Session history is temporary, and public users can view the included source and load profile.
