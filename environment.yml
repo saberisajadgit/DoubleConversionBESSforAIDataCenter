@@ -1,0 +1,14 @@
+name: double-conversion-bess
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.12
+  - numpy
+  - scipy
+  - plotly
+  - streamlit>=1.57
+  - pip
+  - pytest
+  - pip:
+      - -e .

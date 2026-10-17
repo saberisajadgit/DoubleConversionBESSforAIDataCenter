@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "double-conversion-bess"
+version = "0.1.0"
+description = "Dynamic simulation of a double-conversion BESS supplying an AI data center"
+requires-python = ">=3.12"
+dependencies = ["numpy", "scipy", "plotly"]
+
+[project.optional-dependencies]
+app = ["streamlit>=1.57"]
+
+[project.scripts]
+bess-ai = "double_conversion_bess.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--basetemp=.pytest_cache/tmp"

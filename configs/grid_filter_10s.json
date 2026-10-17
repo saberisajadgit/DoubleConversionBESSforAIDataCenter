@@ -1,0 +1,5 @@
+{
+  "inertia_time_s": 10.0,
+  "damping_pu": 1.0,
+  "grid_power_filter_s": 10.0
+}

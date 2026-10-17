@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+.conda/
+build/
+dist/
+outputs/*
+!outputs/.gitkeep
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/README.md
+!data/raw/AILoadProfile.csv
+.streamlit/secrets.toml
+.env
+.DS_Store
