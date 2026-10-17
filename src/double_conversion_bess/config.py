@@ -1,4 +1,4 @@
-"""Explicit provisional parameters; see docs/model-notes.md for provenance."""
+"""Engineering study parameters; see docs/model-notes.md for assumptions."""
 from dataclasses import dataclass
 
 

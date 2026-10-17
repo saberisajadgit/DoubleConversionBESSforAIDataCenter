@@ -217,7 +217,7 @@ with source_tab:
     sources = sorted((ROOT/"src/double_conversion_bess").glob("*.py")) + [ROOT/"app.py"]
     source = st.selectbox("Python source", sources, format_func=lambda p: p.name)
     st.code(source.read_text(encoding="utf-8"), language="python")
-    with st.expander("Model provenance & assumptions"):
+    with st.expander("Model assumptions & limitations"):
         st.markdown((ROOT/"docs/model-notes.md").read_text(encoding="utf-8"))
 
 st.caption("BESS Engineering Workbench · Local simulation · No hardware connection · No automatic publication")

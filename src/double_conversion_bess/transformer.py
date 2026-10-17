@@ -19,7 +19,7 @@ class Transformer:
     nominal_hz: float
     pcs_connection: str = "star, neutral not brought out"
     mv_connection: str = "delta"
-    reported_vector_group: str = "yD1 (user description; clock reference unconfirmed)"
+    reported_vector_group: str = "PCS star / MV delta; clock reference unconfirmed"
 
     @property
     def series_impedance_pu(self):

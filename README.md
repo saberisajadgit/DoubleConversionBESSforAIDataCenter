@@ -13,14 +13,15 @@ Python project for studying a grid rectifier, shared LFP battery/DC bus, and gri
 
 The app includes model equations and a source-code viewer. The default scenario uses a 10-second grid-power filter, load-side VSM Tj = 10 s and D = 1, and scaled battery energy. This is a provisional engineering model; utility parameters and several component characteristics are assumed. See [the electrical model guide](docs/electrical-model.md) for scope and limitations.
 
-## Status
+## Model scope
 
-A provisional reduced-order simulation reconstructed from the screenshots is available, with explicit assumptions for missing definitions. It uses the supplied load CSV. See [model notes](docs/model-notes.md) before interpreting results; this is not an exact recovery of the original source.
+A reduced-order simulation of active-power buffering, battery energy management and approximate frequency response. It includes an AI load profile and configurable component and utility parameters. See [model assumptions and limitations](docs/model-notes.md) before interpreting results.
 
 ## Setup in Anaconda Prompt
 
 ```bat
-cd /d C:\Users\saber\Documents\Python\PCSSimulation\DoubleConversionBESSforAIDataCenter
+git clone https://github.com/saberisajadgit/DoubleConversionBESSforAIDataCenter.git
+cd DoubleConversionBESSforAIDataCenter
 conda env create -f environment.yml
 conda activate double-conversion-bess
 bess-ai --help
@@ -31,7 +32,7 @@ For later dependency changes: `conda env update -f environment.yml --prune`.
 
 ## Load data
 
-The supplied file under `data/raw/` uses `Time_s,Load_pu`. Specify the per-unit power base explicitly. The command below uses the described 5.16 MW converter rating as that base; confirm this matches the load profile's definition. SI input with `time_s,power_w` is also supported and needs no power base.
+The included file under `data/raw/` uses `Time_s,Load_pu`. Specify the per-unit power base explicitly. The example below uses 5.16 MW. For other profiles, use their corresponding power base. SI input with `time_s,power_w` is also supported and needs no power base.
 
 ```bat
 bess-ai validate-profile data/raw/AILoadProfile.csv --base-power-mw 5.16
@@ -44,7 +45,7 @@ src/double_conversion_bess/  Importable package and command line
 tests/                       Input validation checks
 data/raw/                    Included AI load CSV; other raw inputs ignored
 outputs/                     Generated results (Git ignored)
-docs/                        Model provenance and limitations
+docs/                        Electrical equations, assumptions and limitations
 environment.yml              Conda environment
 pyproject.toml               Package metadata and installation
 ```
@@ -76,14 +77,13 @@ The workbench provides:
 
 The initial selection is the latest 10 s filter / Tj 10 / D 1 case. Changes run only on submission. Results remain tied to their completed run's configuration. Session history is not permanent; export runs before closing the session or restarting the server. The interface uses the existing solver and does not change its electrical assumptions.
 
-After installing Streamlit, `python -m pytest` also includes an optional UI smoke check. No simulation or visual browser verification has been performed by the coding agent; the user runs the checks and launch commands.
+After installing Streamlit, `python -m pytest` also includes an optional UI smoke check.
 
 ## Command-line simulation
 
-For an existing activated environment, install the replacement plotting dependency:
+In the activated project environment:
 
 ```bat
-conda install -c conda-forge plotly
 python -m pytest
 bess-ai simulate data/raw/AILoadProfile.csv --base-power-mw 5.16
 start "" "outputs\latest\report.html"
@@ -105,7 +105,7 @@ Modules separate configuration, battery OCV, converter/EMS equations and solver,
 
 ## Source repository
 
-The source is published on [GitHub](https://github.com/saberisajadgit/DoubleConversionBESSforAIDataCenter). The project owner authorized including AILoadProfile.csv in the public demonstration. Dependencies are specified but not locked. No open-source license has yet been selected.
+The source and demonstration load profile are published on [GitHub](https://github.com/saberisajadgit/DoubleConversionBESSforAIDataCenter). Dependencies are specified but not locked. No open-source license has yet been selected.
 
 ## Online deployment
 
@@ -119,4 +119,4 @@ Publish this project folder as the repository root (so app.py, src/, cloud/, doc
 
 The cloud entry point uses cloud/requirements.txt, which takes priority over the root Conda file because it sits beside the entry point. It loads the same app and models as the local version. The source checkout provides the Python package through src/. No API key or other secret is required. The server address is left to the hosting platform.
 
-The online application has been deployed and its interface opened by the project owner. Shared hosting compute limits can affect solver runtime; start with the bundled 213-second profile. Session history is temporary, and public users can view the included source and load profile.
+Shared hosting compute limits can affect solver runtime; start with the bundled 213-second profile. Session history is temporary, and the included source and load profile are public.

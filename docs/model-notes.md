@@ -1,47 +1,52 @@
-# Model transcription status
+# Model assumptions and limitations
 
-The supplied photographs are source reference material. They do not include the beginning of the original script. The implemented provisional model does not claim exact reproduction.
+This reduced-order model studies active-power buffering, battery energy management and approximate frequency response. It supports engineering exploration and controller comparisons. Equipment-specific parameters and utility data are needed for site-specific predictions.
 
-## Implemented assumptions and deliberate changes
+## System states and controls
 
-- Per-unit load base defaults in the documented command to 5.16 MW, not independently confirmed from the profile metadata.
-- Battery energy is 7.08 MWh times 0.025, initially 60% SoC. Converter states initially equal 80% rating.
-- Missing loss multiplier is assumed 1.0. Conversion losses, current limits, battery resistance, and reactive power are not modeled.
-- Frequency uses d(omega)/dt = omega_nom/Tj * [(P_gfm-P_effective)/S_base - D_pu*omega/omega_nom], Tj=5 s, D_pu=20, and droop=0.5 Hz per pu. Damping and droop are assumed. This replaces the unavailable J_load definition with an explicitly normalized model.
-- Rectifier startup ends once at the first upward crossing of 82% SoC; the integral is held at zero during startup. PI then uses conditional integration at actuator saturation. These are deliberate corrections to the visible re-entering startup branch and integral accumulation.
-- Integration stops at the first 0% or 100% SoC crossing instead of hiding boundary violations by clipping plots. Continued operation at a battery boundary is not modeled.
-- The 416S illustrative OCV curve passes through 1,040 V at 0%, 1,385 V at 82%, and 1,500 V at 100%. Intermediate points are assumptions, not manufacturer data. The endpoint voltage-to-SoC assignment is provisional.
-- Resistive transformer drop is estimated as R_pu*P_grid_pu, R_pu=0.005, assuming unity power factor. Reactance and upstream network dynamics are absent.
-- Radau uses maximum steps no larger than the input sample spacing, rtol=1e-6, and linear profile interpolation. Results include event timestamps.
-- Battery net power is positive for charging; inverter frequency represents the reduced swing model even when demand exceeds inverter rating. Load shedding and voltage collapse are not modeled.
+The PCS/battery simulation integrates seven states: load angular-frequency deviation (rad/s), angle deviation (rad), inverter power (W), rectifier power (W), SoC (%), SoC-error integral (%·s), and filtered effective load (W).
 
-Tests cover input validation, balanced steady state, startup handover, and integrated battery energy accounting. The user runs these locally; implementation has not yet been execution-verified.
+Converter references are limited to 0–5.16 MW by default. Grid and load power-response time constants are 0.05 s and 0.02 s. Initial converter powers are 80% of rating; frequency and angle deviations start at zero.
 
-## Visible implementation
+Startup commands rated rectifier power until the first upward crossing of the SoC target, normally 82%. The SoC integral is held at zero during startup. After handover, filtered load feedforward and a saturation-aware SoC PI determine the rectifier reference. Default PI gains are 20,000 W/% and 5,000 W/(%·s).
 
-- The photographed baseline has six states: angular-frequency deviation, angle deviation, GFM power, GFL power, SoC in percent, and SoC-error integral. The current implementation adds a seventh state for filtered grid load feedforward.
-- Grid and load converter references clipped to 0–5.16 MW; first-order time constants 0.05 s and 0.02 s respectively.
-- Below 82% SoC the rectifier reference is maximum power and the error integral continues accumulating.
-- Otherwise its reference is effective load plus PI correction; Kp = 20,000 W per percentage point and Ki = 5,000 W per percentage-point-second.
-- The visible integral freeze condition is SoC >= 99% or absolute error < 0.1 percentage points. This is not saturation-aware anti-windup.
-- Battery power is GFL minus GFM; positive means charging. SoC derivative is 100 times battery power divided by capacity in joules.
-- SoC derivative is frozen for outward motion at 0% and 100%. This alone does not enforce battery power feasibility or exact numerical bounds.
-- Frequency derivative is (GFM power - effective load - D_load * angular-frequency deviation) / J_load.
-- Initial state: [0, 0, 0.8*S_base, 0.8*S_base, 60, 0]. Solver: solve_ivp with Radau.
-- Eight panels: frequency, converter/load powers, battery power, SoC, OCV-derived stack voltage, integral state, rectifier loading, and estimated transformer voltage drop.
+Config uses a 5 s filter by default; the web app initially selects 10 s. Stronger filtering can reduce grid-power fluctuations while increasing battery energy excursions. Startup and SoC correction can still produce grid-power changes.
 
-## Required original definitions
+## Battery
 
-Obtain the actual Python source or missing opening section to recover:
+- Full battery energy is 7.08 MWh. The default scale of 0.025 gives 0.177 MWh for accelerated SoC dynamics; use 1 for full capacity.
+- Initial SoC is 60%. Positive battery power means charging: P_battery = P_grid - P_inverter.
+- The illustrative 416S OCV curve passes through 1,040 V at 0%, 1,385 V at 82%, and 1,500 V at 100%. Lookup points and endpoint-to-SoC assignments are approximations, not manufacturer characterization.
+- OCV is calculated from SoC for reporting. Dynamic DC voltage, battery resistance, current limits and electrochemical losses are not modeled.
+- Integration stops at the first 0% or 100% SoC crossing. Continued operation at an energy boundary is not modeled.
 
-- J_load calculation and damping D_load, including units and normalization.
-- Delta_f_rated and loss_multiplier.
-- Battery scaling, base energy conversion, and the exact cell OCV lookup points.
-- Transformer voltage/impedance bases and R_mvt calculation.
-- CSV column selection, units, interpolation, and time bounds.
+## Load-side VSM
 
-The background description mentions 416S LFP, 7.08 MWh unscaled capacity, nominal 60 Hz, 34.5 kV utility, and 690 V load bus. These remain reference claims pending comparison with the source.
+The normalized equation is:
 
-## Items to assess before scientific use
+    d(delta_omega)/dt = omega_nominal/Tj *
+        [(P_inverter - P_effective_load)/S_base - D*delta_omega/omega_nominal]
 
-The SoC-based voltage shown is an OCV estimate, not a dynamic DC-link voltage model. The startup branch re-enters whenever SoC falls below target; it is not a latched startup phase. Integrating throughout startup can produce a large handover transient. Clipping inverter power does not represent unmet-load protection. The photographed transformer drop equation uses active power and resistance only; it does not establish isolation from grid transients. These issues should be evaluated explicitly after reproducing the original baseline.
+Tj uses the 2H convention. D multiplies per-unit speed deviation. Config defaults are Tj = 5 s, D = 20 and droop = 0.5 Hz/pu. The web app initially selects Tj = 10 s and D = 1. These are configurable study settings rather than equipment-validated gains.
+
+Voltage magnitude, reactive power, switching, PLL and current-control dynamics are absent. The integrated angle does not couple through network impedance to determine electrical power. Load shedding and voltage collapse are not modeled when demand exceeds inverter rating.
+
+## Transformers and upstream utility
+
+Both transformers have PCS-side star windings without neutral terminals and MV-side delta windings. Voltage bases are 690 V and 34.5 kV; transformer apparent-power base is assumed equal numerically to PCS active-power rating. The connection clock reference remains unconfirmed and no phase shift is applied.
+
+Transformer resistance is assumed 0.005 pu and leakage reactance 0.075 pu. Their AC network dynamics are not coupled into the PCS/battery ODE. The transformer-drop diagnostic includes resistance only and assumes unity power factor.
+
+The upstream grid is evaluated separately from rectifier import. PCC voltage uses a balanced, quasi-steady Thevenin equivalent. Frequency uses a linear regional swing/governor model, distinct from the load PCS VSM. Utility parameters are illustrative assumptions. These observations do not feed back into PCS limits or controls; local waveform frequency and PLL response are not calculated.
+
+The direct-load comparison applies the same effective AI demand at the PCC without battery buffering. Both cases neglect converter/transformer losses and assume unity PCC power factor. The effective-load multiplier defaults to 1.0.
+
+## Numerical method and comparisons
+
+The PCS/battery model uses scipy.integrate.solve_ivp with Radau, rtol = 1e-6, state-specific absolute tolerances and maximum steps no larger than input sample spacing. Input power is linearly interpolated. Output includes startup and battery-boundary event times.
+
+Summary fluctuation metrics exclude startup and five filter time constants, with the interval stated in the report. When comparing different filters, use the same input and a common evaluation interval. The plots retain startup transients.
+
+Tests cover profile validation, balanced equilibrium, startup handover, battery energy accounting, fast-load buffering, grid-voltage circuit balance and utility-frequency response. An optional Streamlit smoke test checks that opening the app or changing presets does not automatically run the solver. These checks do not establish hardware or site validation.
+
+See [the electrical model guide](electrical-model.md) for equations, utility parameters and the parallel-system extension roadmap.

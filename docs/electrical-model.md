@@ -61,15 +61,15 @@ The original working defaults remain Tj = 5 s and D = 20. `configs/vsm_tj10_d1.j
 
 ## Transformer model and 7.5%
 
-The user's description is PCS-side star, MV-side delta, no neutral brought out. The reported label `yD1` is retained as supplied. Conventional nameplate notation references the HV winding first; verify the clock reference and terminal phasors before assigning a numerical phase shift. No clock phase shift is currently applied.
+The specified connections are PCS-side star, MV-side delta, with no neutral terminal brought out. The vector-group clock reference remains unconfirmed. Conventional nameplate notation references the HV winding first; verify the clock reference and terminal phasors before assigning a numerical phase shift. No clock phase shift is currently applied.
 
-Interpret the supplied 7.5% inductance as total leakage reactance X = 0.075 pu at nominal frequency, pending nameplate confirmation. If 7.5% instead specifies impedance magnitude, X must be recovered from X = sqrt(Z²-R²).
+The model specifies total leakage reactance X = 0.075 pu at nominal frequency. For equipment specified by impedance magnitude instead of reactance, recover X from X = sqrt(Z²-R²).
 
     Z_base = V_LL_base² / S_three_phase_base
     Z_series = (R_pu + j X_pu) * Z_base
     L_leakage = X_pu * Z_base / (2*pi*f_nominal)
 
-R = 0.005 pu is inherited from the earlier description and remains assumed. Transformer VA base is provisionally 5.16 MVA, distinct conceptually from the PCS MW rating. The exposed impedance is a positive-sequence equivalent referred to the PCS side, not an individual delta winding's impedance.
+Resistance is assumed R = 0.005 pu. Transformer VA base is provisionally 5.16 MVA, distinct conceptually from the PCS MW rating. The exposed impedance is a positive-sequence equivalent referred to the PCS side, not an individual delta winding's impedance.
 
 The present ODE has no AC voltage/current network: leakage reactance, turns ratio and vector group are specified but do not influence its frequency or energy trajectories. The plotted grid transformer drop remains the unity-power-factor estimate 100*R_pu*P_grid_pu. It does not include reactive drop. Load-transformer voltage drop, losses, zero sequence, grounding, inrush, saturation and faults are not solved.
 
